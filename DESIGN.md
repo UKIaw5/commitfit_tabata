@@ -28,35 +28,58 @@ User mindset:
 
 ---
 
-## 3. Core Features (MVP)
+3. **Core Features (MVP)**
 
-1. **Tabata Timer**
+1. **Configurable Tabata Timer**
    - Default protocol: 20s work / 10s rest × 8 rounds
-   - Simple controls: Start, Pause, Stop
-   - Optional: sound or vibration between intervals
+   - User-configurable parameters:
+     - Work duration (seconds)
+     - Rest duration (seconds)
+     - Number of rounds
+   - Simple UI to edit these values (sliders or number pickers)
+   - Settings are persisted locally and used every time the user starts a session from Home
 
 2. **Daily Workout Commit**
-   - After finishing a full Tabata session, the app records a "commit" for today
-   - One square per day (completed or not)
-   - If multiple sessions are done in one day, treat it as "strong" day (darker color) or keep it simple as just completed
+   - After finishing a full Tabata session (based on current settings), the app records a “commit” for today
+   - Multiple sessions per day are counted and affect intensity on the contribution graph
 
 3. **Contribution Graph (GitHub-like)**
    - Heatmap calendar view:
      - Rows = weeks
      - Columns = days
-   - Color intensity based on:
-     - 0 = no workout (empty or light)
-     - 1+ sessions = light → medium → dark
-   - Shows at least the last 12 months
+   - Color intensity based on number of sessions per day:
+     - Example (default):
+       - 0 sessions → level 0 (empty)
+       - 1 session  → level 1 (light)
+       - 2–3 sessions → level 2 (medium)
+       - 4+ sessions → level 3 (dark)
+   - Intensity thresholds are configurable (see Graph customization)
 
-4. **Streaks & Stats (Basic)**
-   - Current streak (consecutive days with workout)
+4. **Streaks & Basic Stats**
+   - Current streak (consecutive days with ≥1 session)
    - Best streak
    - Total number of committed days
 
-5. **Local-only Data (MVP)**
+5. **Local-only Data**
    - No login, no cloud sync
-   - Data stored locally on device
+   - All workout history and settings stored locally on device
+
+6. **Graph Customization (MVP-level, but simple)**
+
+   - User can adjust:
+     - How many weeks/months are displayed (e.g., last 12 weeks vs last 12 months)
+     - Intensity thresholds for contribution levels:
+       - Example configurable fields:
+         - Level 1 threshold (min sessions per day)
+         - Level 2 threshold
+         - Level 3 threshold
+     - (Optional later) color theme (light/dark/green variants)
+
+   - A simple "Graph Settings" screen or section:
+     - Sliders or number fields:
+       - “Level 1: from X sessions”
+       - “Level 2: from Y sessions”
+       - “Level 3: from Z sessions”
 
 ---
 
@@ -70,38 +93,43 @@ User mindset:
 
 ---
 
-## 5. Screen Structure (MVP)
+5. **Screen Structure (MVP)**
 
 1. **Home Screen**
-   - Header: app name + simple tagline  
-     > "Commit your daily Tabata, keep your body green."
-   - Today status:
-     - "Today’s status: ✅ Committed" or "❌ Not committed yet"
-   - Button: [Start Tabata]
-   - Summary: streak, total committed days
+   - Instant start and current preset display
 
 2. **Timer Screen**
-   - Big countdown timer
-   - Label: "Work" / "Rest"
-   - Round indicator: e.g., `Round 3 of 8`
-   - Progress bar or circles for rounds
-   - On complete:
-     - Show a simple "Workout committed" dialog
-     - Update today’s status and contribution graph
+   - Shows current interval:
+     - “Work” / “Rest”
+     - Remaining seconds
+     - Current round: e.g., “Round 3 of 8”
+   - On completion of all rounds:
+     - Records a session for today
+     - Shows a confirmation message:
+       - “Session committed! Your graph has been updated.”
 
 3. **Contribution Graph Screen**
    - GitHub-like heatmap
-   - Simple legend:  
-     - No workout / Light / Medium / Heavy
-   - Basic stats at bottom:
-     - Current streak
-     - Best streak
-     - Total committed days
+   - Legend explaining levels (0–3)
+   - Button/link:
+     - [Graph & Timer settings] or [Customize settings]
 
-4. **Settings Screen (Very simple for MVP)**
-   - Change timer preset? (optional, maybe later)
-   - Toggle sound/vibration
-   - Optional: “Reset all data” (danger zone)
+4. **Settings Screen**
+   - Sections:
+
+     **Timer Settings**
+     - Work duration (seconds)
+     - Rest duration (seconds)
+     - Number of rounds
+     - [Save] button
+
+     **Graph Settings**
+     - Time range (e.g., “Show last 12 weeks” vs “Show last 12 months”)
+     - Intensity thresholds:
+       - Level 1: from X sessions/day
+       - Level 2: from Y sessions/day
+       - Level 3: from Z sessions/day
+     - [Save] button
 
 ---
 
@@ -110,16 +138,26 @@ User mindset:
 ### Entities
 
 **WorkoutDay**
-- `date` (YYYY-MM-DD)
-- `sessions` (int, number of full Tabata sessions done that day)
+- `date` (string, YYYY-MM-DD)
+- `sessions` (int, number of full Tabata sessions completed that day)
 
-Optional derived value:
-- `intensityLevel` (0–3) based on `sessions` count
+**TimerConfig**
+- `workSeconds` (int, e.g., 20)
+- `restSeconds` (int, e.g., 10)
+- `rounds` (int, e.g., 8)
+
+**GraphConfig**
+- `rangeType` (string, e.g., "12_weeks" or "12_months")
+- `level1Threshold` (int, min sessions for level 1)
+- `level2Threshold` (int, min sessions for level 2)
+- `level3Threshold` (int, min sessions for level 3)
 
 ### Storage
-- Simple local storage (for MVP):
-  - Option A: `shared_preferences` with JSON string
-  - Option B: small local DB (e.g., `hive`) if structure grows later
+
+- All of the above are stored locally using `shared_preferences`:
+  - `workout_days` → JSON array of WorkoutDay
+  - `timer_config` → JSON object
+  - `graph_config` → JSON object
 
 ---
 
