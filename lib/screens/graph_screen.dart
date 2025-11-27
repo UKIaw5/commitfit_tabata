@@ -76,13 +76,23 @@ class _GraphScreenState extends State<GraphScreen> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return Scaffold(
+      final loadingScaffold = Scaffold(
         appBar: AppBar(
           title: const Text('Contribution Graph'),
         ),
         body: const Center(
           child: CircularProgressIndicator(),
         ),
+      );
+      return GestureDetector(
+        onHorizontalDragUpdate: (details) {
+          if (details.delta.dx > 12 &&
+              details.globalPosition.dx < 80 &&
+              Navigator.of(context).canPop()) {
+            Navigator.of(context).pop();
+          }
+        },
+        child: loadingScaffold,
       );
     }
 
@@ -128,146 +138,145 @@ class _GraphScreenState extends State<GraphScreen> {
     final todayKey = _formatDateKey(_endDate);
     final todaySessions = _sessionsByDate[todayKey] ?? 0;
 
-    return Scaffold(
+    final scaffold = Scaffold(
       appBar: AppBar(
         title: const Text('Contribution Graph'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Last $_weeksToShow weeks of Tabata sessions',
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              'From ${_startDate.toIso8601String().substring(0, 10)} '
-              'to ${_endDate.toIso8601String().substring(0, 10)}',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 16),
-
-            // 曜日ラベル + 草グラフ本体
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 左側：曜日ラベル（Mon / Wed / Fri だけ出してスッキリ）
-                SizedBox(
-                  width: 28,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: const [
-                      SizedBox(height: 10),
-                      Text('Mon', style: TextStyle(fontSize: 10)),
-                      SizedBox(height: 18),
-                      Text('Wed', style: TextStyle(fontSize: 10)),
-                      SizedBox(height: 18),
-                      Text('Fri', style: TextStyle(fontSize: 10)),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 6),
-
-                // 右側：月ラベル + 草列（横スクロール）
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 月ラベル行
-                        Row(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Last $_weeksToShow weeks',
+                style: const TextStyle(fontSize: 16),
+              ),
+              const SizedBox(height: 6),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 32,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: const [
+                          SizedBox(height: 10),
+                          Text('Mon', style: TextStyle(fontSize: 10)),
+                          SizedBox(height: 18),
+                          Text('Wed', style: TextStyle(fontSize: 10)),
+                          SizedBox(height: 18),
+                          Text('Fri', style: TextStyle(fontSize: 10)),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: List.generate(weeks.length, (weekIndex) {
-                            final label = monthLabels[weekIndex];
-                            return Container(
-                              width: 18,
-                              alignment: Alignment.centerLeft,
-                              margin: const EdgeInsets.only(right: 2),
-                              child: Text(
-                                label,
-                                style: const TextStyle(
-                                  fontSize: 10,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                            );
-                          }),
-                        ),
-                        const SizedBox(height: 4),
-                        // 草グラフ本体
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: List.generate(weeks.length, (weekIndex) {
-                            final week = weeks[weekIndex];
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: week.map((date) {
-                                final key = _formatDateKey(date);
-                                final sessions =
-                                    _sessionsByDate[key] ?? 0;
-                                final color =
-                                    _colorForSessions(context, sessions);
-
-                                return Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 1,
-                                    horizontal: 1,
-                                  ),
-                                  child: Tooltip(
-                                    message:
-                                        '${_formatShortDate(date)} : $sessions session(s)',
-                                    child: Container(
-                                      width: 14,
-                                      height: 14,
-                                      decoration: BoxDecoration(
-                                        color: color,
-                                        borderRadius:
-                                            BorderRadius.circular(3),
-                                      ),
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children:
+                                  List.generate(weeks.length, (weekIndex) {
+                                final label = monthLabels[weekIndex];
+                                return Container(
+                                  width: 18,
+                                  alignment: Alignment.centerLeft,
+                                  margin: const EdgeInsets.only(right: 2),
+                                  child: Text(
+                                    label,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.grey,
                                     ),
                                   ),
                                 );
-                              }).toList(),
-                            );
-                          }),
+                              }),
+                            ),
+                            const SizedBox(height: 4),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children:
+                                  List.generate(weeks.length, (weekIndex) {
+                                final week = weeks[weekIndex];
+                                return Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: week.map((date) {
+                                    final key = _formatDateKey(date);
+                                    final sessions =
+                                        _sessionsByDate[key] ?? 0;
+                                    final color = _colorForSessions(
+                                        context, sessions);
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 1,
+                                        horizontal: 1,
+                                      ),
+                                      child: Tooltip(
+                                        message:
+                                            '${_formatShortDate(date)} : $sessions session(s)',
+                                        child: Container(
+                                          width: 16,
+                                          height: 16,
+                                          decoration: BoxDecoration(
+                                            color: color,
+                                            borderRadius:
+                                                BorderRadius.circular(4),
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                );
+                              }),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // レジェンド
-            Row(
-              children: [
-                const Text('Less', style: TextStyle(fontSize: 10)),
-                const SizedBox(width: 4),
-                _legendBox(context, 0),
-                _legendBox(context, 1),
-                _legendBox(context, 3),
-                _legendBox(context, 5),
-                const SizedBox(width: 4),
-                const Text('More', style: TextStyle(fontSize: 10)),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            Text(
-              todaySessions == 0
-                  ? 'Today: no session yet.'
-                  : 'Today: $todaySessions session(s) logged.',
-              style: const TextStyle(fontStyle: FontStyle.italic),
-            ),
-          ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  const Text('Less', style: TextStyle(fontSize: 10)),
+                  const SizedBox(width: 4),
+                  _legendBox(context, 0),
+                  _legendBox(context, 1),
+                  _legendBox(context, 3),
+                  _legendBox(context, 5),
+                  const SizedBox(width: 4),
+                  const Text('More', style: TextStyle(fontSize: 10)),
+                  const Spacer(),
+                  Text(
+                    todaySessions == 0
+                        ? 'Today: 0'
+                        : 'Today: $todaySessions',
+                    style: const TextStyle(fontSize: 10),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
+    );
+
+    return GestureDetector(
+      onHorizontalDragUpdate: (details) {
+        if (details.delta.dx > 12 &&
+            details.globalPosition.dx < 80 &&
+            Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: scaffold,
     );
   }
 

@@ -28,6 +28,6 @@ flutter:
 
   assets:
     - assets/sounds/tick.mp3
-    - assets/sounds/buzzer.mp3
+    - assets/sounds/ready.mp3
     - assets/sounds/complete.mp3
 

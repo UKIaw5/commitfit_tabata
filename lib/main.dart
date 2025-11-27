@@ -13,16 +13,51 @@ class CommitFitApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseScheme = ColorScheme.fromSeed(
+      seedColor: const Color(0xFF2EA043),
+      brightness: Brightness.light,
+    );
+    final colorScheme = baseScheme.copyWith(
+      background: const Color(0xFFF2F5F0),
+      surface: Colors.white,
+    );
+
     return MaterialApp(
       title: 'CommitFit Tabata',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
         useMaterial3: true,
+        colorScheme: colorScheme,
+        scaffoldBackgroundColor: colorScheme.background,
+        appBarTheme: AppBarTheme(
+          backgroundColor: colorScheme.surface,
+          foregroundColor: colorScheme.onSurface,
+          elevation: 0,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.onPrimary,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: OutlinedButton.styleFrom(
+            foregroundColor: colorScheme.primary,
+            side: BorderSide(color: colorScheme.primary, width: 1.6),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: colorScheme.primary,
+          contentTextStyle: TextStyle(color: colorScheme.onPrimary),
+        ),
       ),
-      // 👇 起動直後にいきなりタイマー画面
       home: const TimerScreen(),
       routes: {
-        // 必要なら '/' も TimerScreen にしておく
         '/timer': (context) => const TimerScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/graph': (context) => const GraphScreen(),
