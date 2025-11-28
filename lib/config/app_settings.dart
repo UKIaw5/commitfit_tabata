@@ -182,5 +182,57 @@ class AppSettings {
     if (day.isEmpty) return 0;
     return day.first.sessions;
   }
+
+  // Graph 設定用キー
+  static const _keyGraphWeeks = 'graph_weeks_to_show';
+  static const _keyGraphMaxSessions = 'graph_max_sessions';
+
+  static const GraphConfig _defaultGraphConfig = GraphConfig(
+    weeksToShow: 12,
+    maxSessionsPerDay: 5,
+  );
+
+  /// グラフ設定を読み込み
+  static Future<GraphConfig> loadGraphConfig() async {
+    final prefs = await SharedPreferences.getInstance();
+    final weeks = prefs.getInt(_keyGraphWeeks);
+    final maxSessions = prefs.getInt(_keyGraphMaxSessions);
+
+    if (weeks == null || maxSessions == null) {
+      return _defaultGraphConfig;
+    }
+
+    return GraphConfig(
+      weeksToShow: weeks,
+      maxSessionsPerDay: maxSessions,
+    );
+  }
+
+  /// グラフ設定を保存
+  static Future<void> saveGraphConfig(GraphConfig config) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyGraphWeeks, config.weeksToShow);
+    await prefs.setInt(_keyGraphMaxSessions, config.maxSessionsPerDay);
+  }
+}
+
+class GraphConfig {
+  final int weeksToShow;
+  final int maxSessionsPerDay;
+
+  const GraphConfig({
+    required this.weeksToShow,
+    required this.maxSessionsPerDay,
+  });
+
+  GraphConfig copyWith({
+    int? weeksToShow,
+    int? maxSessionsPerDay,
+  }) {
+    return GraphConfig(
+      weeksToShow: weeksToShow ?? this.weeksToShow,
+      maxSessionsPerDay: maxSessionsPerDay ?? this.maxSessionsPerDay,
+    );
+  }
 }
 

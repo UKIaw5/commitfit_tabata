@@ -14,10 +14,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
   int _restSeconds = 10;
   int _rounds = 8;
 
+  // Graph settings
+  int _graphWeeks = 12;
+  int _graphMaxSessions = 5;
+
   static const int _minSeconds = 5;
   static const int _maxSeconds = 300;
   static const int _minRounds = 1;
   static const int _maxRounds = 20;
+
+  static const int _minGraphWeeks = 4;
+  static const int _maxGraphWeeks = 52;
+  static const int _minGraphMaxSessions = 1;
+  static const int _maxGraphMaxSessions = 10;
 
   @override
   void initState() {
@@ -26,27 +35,38 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Future<void> _loadConfig() async {
-    final config = await AppSettings.loadTimerConfig();
+    final timerConfig = await AppSettings.loadTimerConfig();
+    final graphConfig = await AppSettings.loadGraphConfig();
     setState(() {
-      _workSeconds = config.workSeconds;
-      _restSeconds = config.restSeconds;
-      _rounds = config.rounds;
+      _workSeconds = timerConfig.workSeconds;
+      _restSeconds = timerConfig.restSeconds;
+      _rounds = timerConfig.rounds;
+
+      _graphWeeks = graphConfig.weeksToShow;
+      _graphMaxSessions = graphConfig.maxSessionsPerDay;
+
       _loading = false;
     });
   }
 
   Future<void> _save() async {
-    final config = TimerConfig(
+    final timerConfig = TimerConfig(
       workSeconds: _workSeconds,
       restSeconds: _restSeconds,
       rounds: _rounds,
     );
 
-    await AppSettings.saveTimerConfig(config);
+    final graphConfig = GraphConfig(
+      weeksToShow: _graphWeeks,
+      maxSessionsPerDay: _graphMaxSessions,
+    );
+
+    await AppSettings.saveTimerConfig(timerConfig);
+    await AppSettings.saveGraphConfig(graphConfig);
 
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Timer settings saved')),
+      const SnackBar(content: Text('Settings saved')),
     );
     Navigator.pop(context);
   }
@@ -68,6 +88,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void _adjustRounds(int delta) {
     setState(() {
       _rounds = (_rounds + delta).clamp(_minRounds, _maxRounds).toInt();
+    });
+  }
+
+  void _adjustGraphWeeks(int delta) {
+    setState(() {
+      _graphWeeks =
+          (_graphWeeks + delta).clamp(_minGraphWeeks, _maxGraphWeeks).toInt();
+    });
+  }
+
+  void _adjustGraphMaxSessions(int delta) {
+    setState(() {
+      _graphMaxSessions = (_graphMaxSessions + delta)
+          .clamp(_minGraphMaxSessions, _maxGraphMaxSessions)
+          .toInt();
     });
   }
 
@@ -177,6 +212,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       onMinus: () => _adjustRounds(-1),
                       onPlus: () => _adjustRounds(1),
                     ),
+                    const SizedBox(height: 32),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Graph Settings',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStepper(
+                      label: 'Weeks to show',
+                      unit: 'weeks',
+                      value: _graphWeeks,
+                      onMinus: () => _adjustGraphWeeks(-4),
+                      onPlus: () => _adjustGraphWeeks(4),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildStepper(
+                      label: 'Max intensity threshold',
+                      unit: 'sessions/day',
+                      value: _graphMaxSessions,
+                      onMinus: () => _adjustGraphMaxSessions(-1),
+                      onPlus: () => _adjustGraphMaxSessions(1),
+                    ),
                     const SizedBox(height: 28),
                     ElevatedButton(
                       onPressed: _save,
@@ -186,19 +247,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Divider(),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Graph Settings (coming soon)',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    const Text(
-                      'You will be able to customize graph intensity and range later.',
-                    ),
                   ],
                 ),
               ),
