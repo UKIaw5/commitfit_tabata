@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'screens/timer_screen.dart';
+import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/graph_screen.dart';
 
@@ -56,9 +56,9 @@ class CommitFitApp extends StatelessWidget {
           contentTextStyle: TextStyle(color: colorScheme.onPrimary),
         ),
       ),
-      home: const TimerScreen(),
+      home: const HomeScreen(),
       routes: {
-        '/timer': (context) => const TimerScreen(),
+        '/timer': (context) => const HomeScreen(),
         '/settings': (context) => const SettingsScreen(),
         '/graph': (context) => const GraphScreen(),
       },

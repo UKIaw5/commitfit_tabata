@@ -225,16 +225,17 @@ class _GraphScreenState extends State<GraphScreen> {
                     const double dayLabelWidth = 40.0;
                     const double dayLabelRightMargin = 8.0;
                     
-                    // グラフ部分の幅
-                    final graphWidth = availableWidth - dayLabelWidth - dayLabelRightMargin;
+                    // グラフ部分の幅（ラベル分を引く）
+                    final graphAreaWidth = availableWidth - dayLabelWidth - dayLabelRightMargin;
                     
                     // セルサイズ計算
-                    // 列数 = _weeksToShow
-                    // マージン = 2.0 (right)
-                    // width = (cellSize + margin) * weeks
-                    // cellSize = (width / weeks) - margin
+                    // 以前は _weeksToShow で割っていたが、
+                    // 今後は「基準となる週数 (12週)」で割って、サイズを固定化する。
+                    const int baseWeeksForSizing = 12;
                     
-                    double cellSize = (graphWidth / _weeksToShow) - 2.0;
+                    // width = (cellSize + margin) * baseWeeks
+                    // cellSize = (width / baseWeeks) - margin
+                    double cellSize = (graphAreaWidth / baseWeeksForSizing) - 2.0;
                     
                     // 高さが足りない場合の制限 (7行 + マージン)
                     // height = (cellSize + margin) * 7
@@ -244,9 +245,8 @@ class _GraphScreenState extends State<GraphScreen> {
                       cellSize = maxHeightBasedCellSize;
                     }
                     
-                    // あまりに小さくなりすぎないように、あるいは大きくなりすぎないように
-                    // cellSize = cellSize.clamp(10.0, 50.0); 
-                    // ユーザー要望: "visually fill the screen much more" なので上限は緩めに
+                    // あまりに小さくなりすぎないように制限（任意）
+                    // cellSize = cellSize.clamp(10.0, 50.0);
                     
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,6 +269,7 @@ class _GraphScreenState extends State<GraphScreen> {
                         Expanded(
                           child: SingleChildScrollView(
                             scrollDirection: Axis.horizontal,
+                            reverse: true, // 最新の日付（右側）を初期表示
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -283,7 +284,7 @@ class _GraphScreenState extends State<GraphScreen> {
                                       child: Text(
                                         label,
                                         style: const TextStyle(
-                                          fontSize: 14, // Increased font size
+                                          fontSize: 14,
                                           color: Colors.grey,
                                           fontWeight: FontWeight.bold,
                                         ),

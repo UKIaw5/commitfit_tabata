@@ -9,14 +9,14 @@ import '../config/app_settings.dart';
 import 'settings_screen.dart';
 import 'graph_screen.dart';
 
-class TimerScreen extends StatefulWidget {
-  const TimerScreen({super.key});
+class HomeScreen extends StatefulWidget {
+  const HomeScreen({super.key});
 
   @override
-  State<TimerScreen> createState() => _TimerScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _TimerScreenState extends State<TimerScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   TimerConfig? _config;
   bool _loading = true;
 
