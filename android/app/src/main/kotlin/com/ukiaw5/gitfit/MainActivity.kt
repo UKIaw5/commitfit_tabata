@@ -1,4 +1,4 @@
-package com.example.commitfit_tabata
+package com.ukiaw5.gitfit
 
 import io.flutter.embedding.android.FlutterActivity
 
