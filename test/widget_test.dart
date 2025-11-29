@@ -14,7 +14,7 @@ void main() {
   testWidgets('Timer screen loads default preset', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
-    await tester.pumpWidget(const CommitFitApp());
+    await tester.pumpWidget(const MyApp());
     await tester.pumpAndSettle();
 
     expect(

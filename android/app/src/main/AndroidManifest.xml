@@ -3,6 +3,10 @@
         android:label="commitfit_tabata"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- AdMob App ID -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-7982112708155827~8656713622" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

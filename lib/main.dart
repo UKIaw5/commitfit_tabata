@@ -4,12 +4,16 @@ import 'screens/home_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/graph_screen.dart';
 
-void main() {
-  runApp(const CommitFitApp());
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
+  runApp(const MyApp());
 }
 
-class CommitFitApp extends StatelessWidget {
-  const CommitFitApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +28,7 @@ class CommitFitApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'CommitFit Tabata',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: colorScheme,

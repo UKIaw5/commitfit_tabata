@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../config/app_settings.dart';
 import 'settings_screen.dart';
@@ -35,10 +36,40 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _hasSessionStarted = false;
   bool _isSessionComplete = false;
 
+  // AdMob Banner
+  BannerAd? _bannerAd;
+  bool _isBannerReady = false;
+
   @override
   void initState() {
     super.initState();
     _loadConfig();
+    _loadBannerAd();
+  }
+
+  void _loadBannerAd() {
+    // Production banner ad unit (DO NOT USE IN DEVELOPMENT, ONLY KEEP AS COMMENT)
+    // const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
+
+    // Use the official Google test banner ad unit for now:
+    const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+
+    _bannerAd = BannerAd(
+      adUnitId: testBannerAdUnitId,
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (ad) {
+          setState(() {
+            _isBannerReady = true;
+          });
+        },
+        onAdFailedToLoad: (ad, error) {
+          ad.dispose();
+          debugPrint('BannerAd failed to load: $error');
+        },
+      ),
+    )..load();
   }
 
   Future<void> _loadConfig() async {
@@ -258,6 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _timer?.cancel();
     _preCountdownTimer?.cancel();
     _player.dispose();
+    _bannerAd?.dispose();
     super.dispose();
   }
 
@@ -291,7 +323,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (_loading || _config == null) {
       return Scaffold(
         appBar: AppBar(
-          title: const Text('Tabata Timer'),
+          title: const Text('Commitfit'),
         ),
         body: const Center(
           child: CircularProgressIndicator(),
@@ -314,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: const Text('Tabata Timer'),
+        title: const Text('Commitfit'),
         actions: [
           IconButton(
             iconSize: 32,
@@ -347,125 +379,137 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          child: Column(
-            children: [
-              Text(
-                'Preset: ${_config!.workSeconds}s / '
-                '${_config!.restSeconds}s • ${_config!.rounds} rounds',
-                style: textTheme.bodyMedium?.copyWith(
-                  color: colorScheme.onSurface.withOpacity(0.7),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: 260,
-                height: 260,
-                child: Stack(
-                  alignment: Alignment.center,
+      body: Column(
+        children: [
+          Expanded(
+            child: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: Column(
                   children: [
+                    Text(
+                      'Preset: ${_config!.workSeconds}s / '
+                      '${_config!.restSeconds}s • ${_config!.rounds} rounds',
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSurface.withOpacity(0.7),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     SizedBox(
                       width: 260,
                       height: 260,
-                      child: CircularProgressIndicator(
-                        value: _progressValue().clamp(0.0, 1.0),
-                        backgroundColor: colorScheme.surfaceVariant,
-                        color: progressColor,
-                        strokeWidth: 12,
-                      ),
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (!_isSessionComplete)
-                          Text(
-                            displayedTime,
-                            style: textTheme.displaySmall?.copyWith(
-                              color: colorScheme.onSurface,
-                              fontFeatures: const [FontFeature.tabularFigures()],
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          SizedBox(
+                            width: 260,
+                            height: 260,
+                            child: CircularProgressIndicator(
+                              value: _progressValue().clamp(0.0, 1.0),
+                              backgroundColor: colorScheme.surfaceVariant,
+                              color: progressColor,
+                              strokeWidth: 12,
                             ),
                           ),
-                        if (_isSessionComplete) const SizedBox(height: 8),
-                        Text(
-                          _phaseLabel(),
-                          style: _isSessionComplete
-                              ? textTheme.headlineMedium?.copyWith(
-                                  fontSize: 36,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 4,
-                                  color: _phaseColor(),
-                                )
-                              : textTheme.headlineSmall?.copyWith(
-                                  fontSize: 32,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 3,
-                                  color: _phaseColor(),
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!_isSessionComplete)
+                                Text(
+                                  displayedTime,
+                                  style: textTheme.displaySmall?.copyWith(
+                                    color: colorScheme.onSurface,
+                                    fontFeatures: const [FontFeature.tabularFigures()],
+                                  ),
                                 ),
+                              if (_isSessionComplete) const SizedBox(height: 8),
+                              Text(
+                                _phaseLabel(),
+                                style: _isSessionComplete
+                                    ? textTheme.headlineMedium?.copyWith(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 4,
+                                        color: _phaseColor(),
+                                      )
+                                    : textTheme.headlineSmall?.copyWith(
+                                        fontSize: 32,
+                                        fontWeight: FontWeight.bold,
+                                        letterSpacing: 3,
+                                        color: _phaseColor(),
+                                      ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _InfoStat(
+                          label: 'SETS',
+                          value: '$_currentRound / ${_config!.rounds}',
+                        ),
+                        _InfoStat(
+                          label: 'TOTAL TIME',
+                          value: totalSessionTime,
+                        ),
+                      ],
+                    ),
+                    const Spacer(),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              backgroundColor: _isTimerActive
+                                  ? colorScheme.secondary
+                                  : colorScheme.primary,
+                              foregroundColor: colorScheme.onPrimary,
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onPressed: _isTimerActive ? _pauseTimer : _startTimer,
+                            child: Text(_isTimerActive ? 'PAUSE' : 'START'),
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              side: BorderSide(
+                                color: colorScheme.primary,
+                                width: 2,
+                              ),
+                              textStyle: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            onPressed: _resetTimer,
+                            child: const Text('RESET'),
+                          ),
                         ),
                       ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 32),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _InfoStat(
-                    label: 'SETS',
-                    value: '$_currentRound / ${_config!.rounds}',
-                  ),
-                  _InfoStat(
-                    label: 'TOTAL TIME',
-                    value: totalSessionTime,
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        backgroundColor: _isTimerActive
-                            ? colorScheme.secondary
-                            : colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: _isTimerActive ? _pauseTimer : _startTimer,
-                      child: Text(_isTimerActive ? 'PAUSE' : 'START'),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: OutlinedButton(
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 20),
-                        side: BorderSide(
-                          color: colorScheme.primary,
-                          width: 2,
-                        ),
-                        textStyle: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      onPressed: _resetTimer,
-                      child: const Text('RESET'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        ),
+          if (_isBannerReady && _bannerAd != null)
+            SizedBox(
+              width: _bannerAd!.size.width.toDouble(),
+              height: _bannerAd!.size.height.toDouble(),
+              child: AdWidget(ad: _bannerAd!),
+            ),
+        ],
       ),
     );
 
