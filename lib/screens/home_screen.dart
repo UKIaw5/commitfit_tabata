@@ -52,7 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
 
     // Use the official Google test banner ad unit for now:
-    // const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+    // (Removed to ensure production ads)
 
     _bannerAd = BannerAd(
       adUnitId: prodBannerAdUnitId,
