@@ -48,14 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadBannerAd() {
-    // Production banner ad unit (DO NOT USE IN DEVELOPMENT, ONLY KEEP AS COMMENT)
-    // const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
+    // Production banner ad unit
+    const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
 
     // Use the official Google test banner ad unit for now:
-    const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
+    // const String testBannerAdUnitId = 'ca-app-pub-3940256099942544/6300978111';
 
     _bannerAd = BannerAd(
-      adUnitId: testBannerAdUnitId,
+      adUnitId: prodBannerAdUnitId,
       size: AdSize.banner,
       request: const AdRequest(),
       listener: BannerAdListener(
