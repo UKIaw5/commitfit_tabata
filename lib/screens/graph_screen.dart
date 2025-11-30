@@ -47,7 +47,7 @@ class _GraphScreenState extends State<GraphScreen> {
   }
 
   void _recalcDates() {
-    final today = DateTime.now();
+    final today = DateTime.now().toLocal();
     final normalizedToday = DateTime(today.year, today.month, today.day);
     final totalDays = _weeksToShow * 7;
 
@@ -57,6 +57,7 @@ class _GraphScreenState extends State<GraphScreen> {
   }
 
   String _formatDateKey(DateTime date) {
+    // Ensure date is treated as local components
     final y = date.year.toString().padLeft(4, '0');
     final m = date.month.toString().padLeft(2, '0');
     final d = date.day.toString().padLeft(2, '0');

@@ -346,7 +346,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: const Text('Commitfit'),
+        title: const Text('GitFit'),
         actions: [
           IconButton(
             iconSize: 32,

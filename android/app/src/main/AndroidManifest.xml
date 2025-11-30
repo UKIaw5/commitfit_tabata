@@ -2,7 +2,7 @@
     package="com.ukiaw5.gitfit">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="commitfit_tabata"
+        android:label="GitFit"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <!-- AdMob App ID -->

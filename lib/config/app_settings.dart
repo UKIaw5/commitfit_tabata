@@ -142,9 +142,9 @@ class AppSettings {
     await prefs.setString(_keyWorkoutDays, jsonString);
   }
 
-  /// 今日の日付キー 'YYYY-MM-DD'
+  /// 今日の日付キー 'YYYY-MM-DD' (Local time)
   static String _todayKey() {
-    final now = DateTime.now();
+    final now = DateTime.now().toLocal();
     final y = now.year.toString().padLeft(4, '0');
     final m = now.month.toString().padLeft(2, '0');
     final d = now.day.toString().padLeft(2, '0');

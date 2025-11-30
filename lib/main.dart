@@ -5,6 +5,7 @@ import 'screens/settings_screen.dart';
 import 'screens/graph_screen.dart';
 
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -13,6 +14,7 @@ void main() async {
   } catch (e) {
     debugPrint("AdMob initialization failed: $e");
   }
+  await WakelockPlus.enable();
   runApp(const MyApp());
 }
 
@@ -31,7 +33,7 @@ class MyApp extends StatelessWidget {
     );
 
     return MaterialApp(
-      title: 'CommitFit Tabata',
+      title: 'GitFit',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
