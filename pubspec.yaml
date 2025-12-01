@@ -5,7 +5,7 @@ description: "Tabata workout tracker with GitHub-style contribution graph."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 # Version and build number
-version: 1.0.11+11
+version: 1.0.12+12
 
 environment:
   sdk: ">=3.3.0 <4.0.0"
@@ -19,6 +19,7 @@ dependencies:
   audioplayers: ^6.0.0
   google_mobile_ads: ^5.1.0
   wakelock_plus: ^1.2.0
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:

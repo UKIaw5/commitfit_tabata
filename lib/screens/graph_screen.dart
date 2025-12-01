@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../config/app_settings.dart';
 
@@ -98,8 +99,20 @@ class _GraphScreenState extends State<GraphScreen> {
         appBar: AppBar(
           title: const Text('Contribution Graph'),
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Loading contributions...',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: Colors.grey,
+                    ),
+              ),
+            ],
+          ),
         ),
       );
       return GestureDetector(
@@ -168,7 +181,7 @@ class _GraphScreenState extends State<GraphScreen> {
       final currentMonth = firstDay.month;
       if (lastMonth != currentMonth) {
         // 月が変わったタイミングだけラベル表示
-        final monthName = _monthShortName(currentMonth);
+        final monthName = _monthShortName(firstDay);
         monthLabels.add(monthName);
         lastMonth = currentMonth;
       } else {
@@ -398,34 +411,8 @@ class _GraphScreenState extends State<GraphScreen> {
     );
   }
 
-  String _monthShortName(int month) {
-    switch (month) {
-      case 1:
-        return 'Jan';
-      case 2:
-        return 'Feb';
-      case 3:
-        return 'Mar';
-      case 4:
-        return 'Apr';
-      case 5:
-        return 'May';
-      case 6:
-        return 'Jun';
-      case 7:
-        return 'Jul';
-      case 8:
-        return 'Aug';
-      case 9:
-        return 'Sep';
-      case 10:
-        return 'Oct';
-      case 11:
-        return 'Nov';
-      case 12:
-        return 'Dec';
-      default:
-        return '';
-    }
+  String _monthShortName(DateTime date) {
+    // Use intl to format month name (e.g., Jan, Feb)
+    return DateFormat('MMM', 'en_US').format(date);
   }
 }

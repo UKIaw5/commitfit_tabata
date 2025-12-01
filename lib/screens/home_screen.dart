@@ -325,8 +325,23 @@ class _HomeScreenState extends State<HomeScreen> {
         appBar: AppBar(
           title: const Text('Commitfit'),
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                'GitFit',
+                style: Theme.of(context).textTheme.displayMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 32),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              const Text('Loading GitFit...'),
+            ],
+          ),
         ),
       );
     }
@@ -486,7 +501,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               side: BorderSide(
                                 color: colorScheme.primary,
                                 width: 2,
-                              ),
+                                ),
                               textStyle: const TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
@@ -503,14 +518,19 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          if (_isBannerReady && _bannerAd != null)
-            SizedBox(
-              width: _bannerAd!.size.width.toDouble(),
-              height: _bannerAd!.size.height.toDouble(),
-              child: AdWidget(ad: _bannerAd!),
-            ),
         ],
       ),
+      bottomNavigationBar: _isBannerReady && _bannerAd != null
+          ? SafeArea(
+              top: false,
+              child: SizedBox(
+                height: _bannerAd!.size.height.toDouble(),
+                child: Center(
+                  child: AdWidget(ad: _bannerAd!),
+                ),
+              ),
+            )
+          : null,
     );
 
     return scaffold;
