@@ -10,6 +10,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 // ...
 
+import 'package:purchases_flutter/purchases_flutter.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([
@@ -21,6 +23,10 @@ void main() async {
   } catch (e) {
     debugPrint("AdMob initialization failed: $e");
   }
+  
+  // TODO: set RevenueCat API key
+  // await Purchases.configure(PurchasesConfiguration("YOUR_API_KEY"));
+  
   await WakelockPlus.enable();
   runApp(const MyApp());
 }
