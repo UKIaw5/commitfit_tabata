@@ -41,30 +41,21 @@ android {
 
     signingConfigs {
         create("release") {
-            val keyAliasProp = keystoreProperties["keyAlias"] as String?
-            val keyPasswordProp = keystoreProperties["keyPassword"] as String?
-            val storeFileProp = keystoreProperties["storeFile"] as String?
-            val storePasswordProp = keystoreProperties["storePassword"] as String?
-
-            if (keyAliasProp != null && keyPasswordProp != null && storeFileProp != null && storePasswordProp != null) {
-                keyAlias = keyAliasProp
-                keyPassword = keyPasswordProp
-                storeFile = file(storeFileProp)
-                storePassword = storePasswordProp
+            if (keystorePropertiesFile.exists()) {
+                storeFile = file(keystoreProperties["storeFile"] as String)
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
             }
         }
     }
 
     buildTypes {
         release {
-            val keyAliasProp = keystoreProperties["keyAlias"] as String?
-            val keyPasswordProp = keystoreProperties["keyPassword"] as String?
-            val storeFileProp = keystoreProperties["storeFile"] as String?
-            val storePasswordProp = keystoreProperties["storePassword"] as String?
-
-            if (keyAliasProp != null && keyPasswordProp != null && storeFileProp != null && storePasswordProp != null) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            // This is the critical fix: ensure signingConfig is ALWAYS applied if it exists
+            // The previous code conditionally applied it.
+            // We will use the 'release' signing config we created above.
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             isShrinkResources = false
         }
