@@ -214,6 +214,20 @@ class AppSettings {
     await prefs.setInt(_keyGraphWeeks, config.weeksToShow);
     await prefs.setInt(_keyGraphMaxSessions, config.maxSessionsPerDay);
   }
+  // Theme 設定用キー
+  static const _keyThemeColor = 'theme_color_value';
+
+  /// テーマカラーを読み込み（デフォルトは緑）
+  static Future<int> loadThemeColor() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_keyThemeColor) ?? 0xFF2EA043;
+  }
+
+  /// テーマカラーを保存
+  static Future<void> saveThemeColor(int colorValue) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_keyThemeColor, colorValue);
+  }
 }
 
 class GraphConfig {

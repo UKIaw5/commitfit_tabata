@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../config/app_settings.dart';
+import '../services/pro_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -168,6 +169,52 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
+  Widget _buildColorOption(int colorValue, bool isPro) {
+    final isSelected = false; // TODO: Pass current selection
+    // We will need to lift state up or reload to reflect changes immediately,
+    // but for now let's just save to prefs and show a snackbar.
+    
+    return GestureDetector(
+      onTap: () async {
+        if (!isPro && colorValue != 0xFF2EA043) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Custom themes require Pro')),
+          );
+          return;
+        }
+        await AppSettings.saveThemeColor(colorValue);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Theme saved. Restart to apply fully.')),
+          );
+          // In a real app, we'd use a ValueNotifier or Provider to update main.dart immediately.
+        }
+      },
+      child: Container(
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Color(colorValue),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: Colors.grey.shade300,
+            width: 2,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: !isPro && colorValue != 0xFF2EA043
+            ? const Icon(Icons.lock, color: Colors.white, size: 20)
+            : null,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final scaffold = Scaffold(
@@ -245,6 +292,113 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         padding: EdgeInsets.symmetric(vertical: 14),
                         child: Text('Save settings'),
                       ),
+                    ),
+                    const SizedBox(height: 32),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'Theme Color',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: ProService().isProNotifier,
+                      builder: (context, isPro, _) {
+                        return Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          children: [
+                            _buildColorOption(0xFF2EA043, isPro), // Green (Default)
+                            _buildColorOption(0xFF2563EB, isPro), // Blue
+                            _buildColorOption(0xFFDC2626, isPro), // Red
+                            _buildColorOption(0xFF9333EA, isPro), // Purple
+                            _buildColorOption(0xFFEA580C, isPro), // Orange
+                          ],
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 32),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'GitFit Pro',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: ProService().isProNotifier,
+                      builder: (context, isPro, _) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (isPro)
+                              Container(
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.shade50,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(color: Colors.green),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle, color: Colors.green),
+                                    const SizedBox(width: 12),
+                                    const Expanded(
+                                      child: Text(
+                                        'Pro Unlocked',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.green,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            else
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: () async {
+                                      final success = await ProService().purchasePro();
+                                      if (success && mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Welcome to Pro!')),
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.star),
+                                    label: const Text('Unlock Pro (One-time)'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Theme.of(context).colorScheme.primary,
+                                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                                      padding: const EdgeInsets.symmetric(vertical: 16),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  OutlinedButton(
+                                    onPressed: () async {
+                                      await ProService().restorePurchases();
+                                      if (mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          const SnackBar(content: Text('Purchases restored')),
+                                        );
+                                      }
+                                    },
+                                    child: const Text('Restore Purchases'),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 32),
                   ],

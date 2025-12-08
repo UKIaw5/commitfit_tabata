@@ -11,6 +11,8 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 // ...
 
 import 'package:purchases_flutter/purchases_flutter.dart';
+import 'services/pro_service.dart';
+import 'config/app_settings.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,8 +26,16 @@ void main() async {
     debugPrint("AdMob initialization failed: $e");
   }
   
-  // TODO: set RevenueCat API key
-  // await Purchases.configure(PurchasesConfiguration("YOUR_API_KEY"));
+  // Initialize RevenueCat
+  // TODO: Replace with your actual API key
+  const androidRevenueCatApiKey = "YOUR_REVENUECAT_ANDROID_PUBLIC_SDK_KEY";
+  
+  try {
+    await Purchases.configure(PurchasesConfiguration(androidRevenueCatApiKey));
+    await ProService().init();
+  } catch (e) {
+    debugPrint("RevenueCat initialization failed: $e");
+  }
   
   await WakelockPlus.enable();
   runApp(const MyApp());
@@ -36,55 +46,61 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final baseScheme = ColorScheme.fromSeed(
-      seedColor: const Color(0xFF2EA043),
-      brightness: Brightness.light,
-    );
-    final colorScheme = baseScheme.copyWith(
-      background: const Color(0xFFF2F5F0),
-      surface: Colors.white,
-    );
+    return FutureBuilder<int>(
+      future: AppSettings.loadThemeColor(),
+      builder: (context, snapshot) {
+        final seedColorValue = snapshot.data ?? 0xFF2EA043;
+        final baseScheme = ColorScheme.fromSeed(
+          seedColor: Color(seedColorValue),
+          brightness: Brightness.light,
+        );
+        final colorScheme = baseScheme.copyWith(
+          background: const Color(0xFFF2F5F0),
+          surface: Colors.white,
+        );
 
-    return MaterialApp(
-      title: 'GitFit',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        colorScheme: colorScheme,
-        scaffoldBackgroundColor: colorScheme.background,
-        appBarTheme: AppBarTheme(
-          backgroundColor: colorScheme.surface,
-          foregroundColor: colorScheme.onSurface,
-          elevation: 0,
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorScheme.primary,
-            foregroundColor: colorScheme.onPrimary,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        return MaterialApp(
+          title: 'GitFit',
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            useMaterial3: true,
+            colorScheme: colorScheme,
+            scaffoldBackgroundColor: colorScheme.background,
+            appBarTheme: AppBarTheme(
+              backgroundColor: colorScheme.surface,
+              foregroundColor: colorScheme.onSurface,
+              elevation: 0,
+            ),
+            elevatedButtonTheme: ElevatedButtonThemeData(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+            outlinedButtonTheme: OutlinedButtonThemeData(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+                side: BorderSide(color: colorScheme.primary, width: 1.6),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+            ),
+            snackBarTheme: SnackBarThemeData(
+              backgroundColor: colorScheme.primary,
+              contentTextStyle: TextStyle(color: colorScheme.onPrimary),
             ),
           ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            foregroundColor: colorScheme.primary,
-            side: BorderSide(color: colorScheme.primary, width: 1.6),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-          ),
-        ),
-        snackBarTheme: SnackBarThemeData(
-          backgroundColor: colorScheme.primary,
-          contentTextStyle: TextStyle(color: colorScheme.onPrimary),
-        ),
-      ),
-      home: const HomeScreen(),
-      routes: {
-        '/timer': (context) => const HomeScreen(),
-        '/settings': (context) => const SettingsScreen(),
-        '/graph': (context) => const GraphScreen(),
+          home: const HomeScreen(),
+          routes: {
+            '/timer': (context) => const HomeScreen(),
+            '/settings': (context) => const SettingsScreen(),
+            '/graph': (context) => const GraphScreen(),
+          },
+        );
       },
     );
   }

@@ -7,6 +7,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../config/app_settings.dart';
+import '../services/pro_service.dart';
 import 'settings_screen.dart';
 import 'graph_screen.dart';
 
@@ -45,9 +46,13 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     _loadConfig();
     _loadBannerAd();
+    ProService().isProNotifier.addListener(_onProStatusChanged);
   }
 
   void _loadBannerAd() {
+    // If Pro, don't load ads
+    if (ProService().isPro) return;
+
     // Production banner ad unit
     const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
 
@@ -60,6 +65,10 @@ class _HomeScreenState extends State<HomeScreen> {
       request: const AdRequest(),
       listener: BannerAdListener(
         onAdLoaded: (ad) {
+          if (!mounted) {
+            ad.dispose();
+            return;
+          }
           setState(() {
             _isBannerReady = true;
           });
@@ -70,6 +79,22 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       ),
     )..load();
+  }
+
+  void _onProStatusChanged() {
+    if (ProService().isPro) {
+      // User became Pro, remove ads
+      _bannerAd?.dispose();
+      setState(() {
+        _bannerAd = null;
+        _isBannerReady = false;
+      });
+    } else {
+      // User is not Pro (or lost status), load ads if not already loaded
+      if (_bannerAd == null) {
+        _loadBannerAd();
+      }
+    }
   }
 
   Future<void> _loadConfig() async {
@@ -290,6 +315,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _preCountdownTimer?.cancel();
     _player.dispose();
     _bannerAd?.dispose();
+    ProService().isProNotifier.removeListener(_onProStatusChanged);
     super.dispose();
   }
 
