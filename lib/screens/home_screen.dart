@@ -1,13 +1,14 @@
 import 'dart:async';
-import 'dart:ui';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
+import 'package:provider/provider.dart';
 import '../config/app_settings.dart';
-import '../services/pro_service.dart';
+import '../state/pro_state.dart';
 import 'settings_screen.dart';
 import 'graph_screen.dart';
 
@@ -45,19 +46,23 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _loadConfig();
-    _loadBannerAd();
-    ProService().isProNotifier.addListener(_onProStatusChanged);
+    // Ad loading is handled in didChangeDependencies
   }
 
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _preCountdownTimer?.cancel();
+    _player.dispose();
+    _bannerAd?.dispose();
+    super.dispose();
+  }
   void _loadBannerAd() {
     // If Pro, don't load ads
-    if (ProService().isPro) return;
+    if (context.read<ProState>().isPro) return;
 
     // Production banner ad unit
     const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
-
-    // Use the official Google test banner ad unit for now:
-    // (Removed to ensure production ads)
 
     _bannerAd = BannerAd(
       adUnitId: prodBannerAdUnitId,
@@ -81,16 +86,19 @@ class _HomeScreenState extends State<HomeScreen> {
     )..load();
   }
 
-  void _onProStatusChanged() {
-    if (ProService().isPro) {
-      // User became Pro, remove ads
-      _bannerAd?.dispose();
-      setState(() {
-        _bannerAd = null;
-        _isBannerReady = false;
-      });
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final isPro = context.watch<ProState>().isPro;
+    if (isPro) {
+      if (_bannerAd != null) {
+        _bannerAd?.dispose();
+        setState(() {
+          _bannerAd = null;
+          _isBannerReady = false;
+        });
+      }
     } else {
-      // User is not Pro (or lost status), load ads if not already loaded
       if (_bannerAd == null) {
         _loadBannerAd();
       }
@@ -309,15 +317,7 @@ class _HomeScreenState extends State<HomeScreen> {
     return '$mStr:$sStr';
   }
 
-  @override
-  void dispose() {
-    _timer?.cancel();
-    _preCountdownTimer?.cancel();
-    _player.dispose();
-    _bannerAd?.dispose();
-    ProService().isProNotifier.removeListener(_onProStatusChanged);
-    super.dispose();
-  }
+
 
   int _phaseTotalSeconds() {
     if (_config == null) return 1;

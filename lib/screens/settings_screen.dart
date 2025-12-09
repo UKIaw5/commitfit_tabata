@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../config/app_settings.dart';
 import '../services/pro_service.dart';
+import '../state/pro_state.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -305,7 +307,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     ValueListenableBuilder<bool>(
-                      valueListenable: ProService().isProNotifier,
+                      valueListenable: ValueNotifier(context.watch<ProState>().isPro),
                       builder: (context, isPro, _) {
                         return Wrap(
                           spacing: 12,
@@ -332,7 +334,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                     const SizedBox(height: 16),
                     ValueListenableBuilder<bool>(
-                      valueListenable: ProService().isProNotifier,
+                      valueListenable: ValueNotifier(context.watch<ProState>().isPro),
                       builder: (context, isPro, _) {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -375,7 +377,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Purchase unavailable. Check logs.')),
+                                            const SnackBar(content: Text('Purchase unavailable right now. Please try again later.')),
                                           );
                                         }
                                       }

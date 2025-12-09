@@ -6,65 +6,51 @@ class ProService {
   factory ProService() => _instance;
   ProService._internal();
 
-  final ValueNotifier<bool> isProNotifier = ValueNotifier(false);
-  bool get isPro => isProNotifier.value;
+  // Single source of truth for the entitlement identifier
+  // Matches the identifier in RevenueCat dashboard
+  static const String proEntitlementId = 'GitFit Pro';
 
-  Future<void> init() async {
-    try {
-      // Listen to customer info updates
-      Purchases.addCustomerInfoUpdateListener((info) {
-        _updateProStatus(info);
-      });
-
-      // Initial check
-      final info = await Purchases.getCustomerInfo();
-      _updateProStatus(info);
-    } catch (e) {
-      debugPrint('ProService init failed: $e');
-      // Default to free on error
-      isProNotifier.value = false;
-    }
+  /// Initialize RevenueCat listener
+  void init(void Function(CustomerInfo) onUpdate) {
+    Purchases.addCustomerInfoUpdateListener(onUpdate);
   }
 
-  void _updateProStatus(CustomerInfo info) {
-    // Check for "pro" entitlement
-    // Adjust "pro" to match your actual entitlement identifier in RevenueCat
-    final entitlement = info.entitlements.all['pro'];
-    final isActive = entitlement?.isActive ?? false;
-    
-    if (isActive != isProNotifier.value) {
-      isProNotifier.value = isActive;
-      debugPrint('Pro status updated: $isActive');
-    }
+  /// Check if user is Pro from CustomerInfo
+  bool isPro(CustomerInfo info) {
+    return info.entitlements.active.containsKey(proEntitlementId);
+  }
+
+  Future<CustomerInfo> getCustomerInfo() async {
+    return await Purchases.getCustomerInfo();
   }
 
   Future<bool> purchasePro() async {
     try {
       final offerings = await Purchases.getOfferings();
-      debugPrint('[IAP] offerings keys: ${offerings.all.keys}');
-      debugPrint('[IAP] current offering: ${offerings.current?.identifier}');
+      if (kDebugMode) {
+        print('[ProService] Offerings: ${offerings.all.keys}');
+      }
 
       final offering = offerings.current ?? offerings.all['default'];
       if (offering == null) {
-        debugPrint('[IAP] No offering found. Available keys: ${offerings.all.keys}');
+        if (kDebugMode) print('[ProService] No offering found');
         return false;
       }
 
       final package = offering.lifetime ?? offering.availablePackages.firstOrNull;
-      debugPrint('[IAP] selected package: ${package?.identifier}');
-      debugPrint('[IAP] selected product: ${package?.storeProduct.identifier}');
-
       if (package == null) {
-        debugPrint('[IAP] No package found in offering');
+        if (kDebugMode) print('[ProService] No package found');
         return false;
       }
 
+      if (kDebugMode) {
+        print('[ProService] Purchasing package: ${package.identifier}');
+      }
+
       final info = await Purchases.purchasePackage(package);
-      _updateProStatus(info);
-      debugPrint('[IAP] purchase success: ${info.entitlements.active.keys}');
-      return isPro;
+      return isPro(info);
     } catch (e) {
-      debugPrint('[IAP] purchase error: $e');
+      if (kDebugMode) print('[ProService] Purchase failed: $e');
       return false;
     }
   }
@@ -72,11 +58,9 @@ class ProService {
   Future<bool> restorePurchases() async {
     try {
       final info = await Purchases.restorePurchases();
-      _updateProStatus(info);
-      debugPrint('[IAP] restore success: ${info.entitlements.active.keys}');
-      return isPro;
+      return isPro(info);
     } catch (e) {
-      debugPrint('[IAP] Restore failed: $e');
+      if (kDebugMode) print('[ProService] Restore failed: $e');
       return false;
     }
   }

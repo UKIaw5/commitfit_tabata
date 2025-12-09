@@ -10,8 +10,9 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 // ...
 
+import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
-import 'services/pro_service.dart';
+import 'state/pro_state.dart';
 import 'config/app_settings.dart';
 
 void main() async {
@@ -32,13 +33,21 @@ void main() async {
   
   try {
     await Purchases.configure(PurchasesConfiguration(androidRevenueCatApiKey));
-    await ProService().init();
+    // ProService init is handled by ProState
   } catch (e) {
     debugPrint("RevenueCat initialization failed: $e");
   }
   
   await WakelockPlus.enable();
-  runApp(const MyApp());
+  
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProState()..init()),
+      ],
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
