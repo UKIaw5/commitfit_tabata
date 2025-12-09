@@ -27,9 +27,6 @@ class ProService {
   Future<bool> purchasePro() async {
     try {
       final offerings = await Purchases.getOfferings();
-      if (kDebugMode) {
-        print('[ProService] Offerings: ${offerings.all.keys}');
-      }
 
       final offering = offerings.current ?? offerings.all['default'];
       if (offering == null) {
@@ -41,10 +38,6 @@ class ProService {
       if (package == null) {
         if (kDebugMode) print('[ProService] No package found');
         return false;
-      }
-
-      if (kDebugMode) {
-        print('[ProService] Purchasing package: ${package.identifier}');
       }
 
       final info = await Purchases.purchasePackage(package);

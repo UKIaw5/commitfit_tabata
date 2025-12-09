@@ -59,14 +59,25 @@ class MyApp extends StatelessWidget {
       future: AppSettings.loadThemeColor(),
       builder: (context, snapshot) {
         final seedColorValue = snapshot.data ?? 0xFF2EA043;
+        final isMonochrome = seedColorValue == 0xFF171717;
+
         final baseScheme = ColorScheme.fromSeed(
           seedColor: Color(seedColorValue),
-          brightness: Brightness.light,
+          brightness: isMonochrome ? Brightness.dark : Brightness.light,
         );
-        final colorScheme = baseScheme.copyWith(
-          background: const Color(0xFFF2F5F0),
-          surface: Colors.white,
-        );
+
+        final colorScheme = isMonochrome
+            ? baseScheme.copyWith(
+                background: const Color(0xFF171717), // Near-black
+                surface: const Color(0xFF262626), // Slightly lighter
+                onSurface: const Color(0xFFE5E5E5), // Light gray text
+                primary: const Color(0xFF737373), // Neutral gray accent
+                onPrimary: Colors.white,
+              )
+            : baseScheme.copyWith(
+                background: const Color(0xFFF2F5F0),
+                surface: Colors.white,
+              );
 
         return MaterialApp(
           title: 'GitFit',

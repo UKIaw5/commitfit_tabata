@@ -316,8 +316,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _buildColorOption(0xFF2EA043, isPro), // Green (Default)
                             _buildColorOption(0xFF2563EB, isPro), // Blue
                             _buildColorOption(0xFFDC2626, isPro), // Red
-                            _buildColorOption(0xFF9333EA, isPro), // Purple
-                            _buildColorOption(0xFFEA580C, isPro), // Orange
+                            _buildColorOption(0xFF171717, isPro), // Monochrome
                           ],
                         );
                       },
@@ -377,7 +376,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('Purchase unavailable right now. Please try again later.')),
+                                            const SnackBar(content: Text('Purchases are not available right now. Please try again later.')),
                                           );
                                         }
                                       }
@@ -401,7 +400,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                           );
                                         } else {
                                           ScaffoldMessenger.of(context).showSnackBar(
-                                            const SnackBar(content: Text('No purchases to restore')),
+                                            const SnackBar(content: Text('No previous purchases found.')),
                                           );
                                         }
                                       }
