@@ -28,7 +28,7 @@ void main() async {
   
   // Initialize RevenueCat
   // TODO: Replace with your actual API key
-  const androidRevenueCatApiKey = "YOUR_REVENUECAT_ANDROID_PUBLIC_SDK_KEY";
+  const androidRevenueCatApiKey = "goog_NmiQfzdeVrNdheCLyQXTCtoYiVN";
   
   try {
     await Purchases.configure(PurchasesConfiguration(androidRevenueCatApiKey));

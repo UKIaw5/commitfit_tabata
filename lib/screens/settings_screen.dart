@@ -368,10 +368,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   ElevatedButton.icon(
                                     onPressed: () async {
                                       final success = await ProService().purchasePro();
-                                      if (success && mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Welcome to Pro!')),
-                                        );
+                                      if (mounted) {
+                                        if (success) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Welcome to Pro!')),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Purchase unavailable. Check logs.')),
+                                          );
+                                        }
                                       }
                                     },
                                     icon: const Icon(Icons.star),
@@ -385,11 +391,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   const SizedBox(height: 12),
                                   OutlinedButton(
                                     onPressed: () async {
-                                      await ProService().restorePurchases();
+                                      final isPro = await ProService().restorePurchases();
                                       if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          const SnackBar(content: Text('Purchases restored')),
-                                        );
+                                        if (isPro) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('Purchases restored')),
+                                          );
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(content: Text('No purchases to restore')),
+                                          );
+                                        }
                                       }
                                     },
                                     child: const Text('Restore Purchases'),

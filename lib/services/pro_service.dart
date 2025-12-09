@@ -41,37 +41,43 @@ class ProService {
   Future<bool> purchasePro() async {
     try {
       final offerings = await Purchases.getOfferings();
-      // Use "default" offering and "lifetime" package as configured in RevenueCat
+      debugPrint('[IAP] offerings keys: ${offerings.all.keys}');
+      debugPrint('[IAP] current offering: ${offerings.current?.identifier}');
+
       final offering = offerings.current ?? offerings.all['default'];
-      
       if (offering == null) {
-        debugPrint('No offering found');
+        debugPrint('[IAP] No offering found. Available keys: ${offerings.all.keys}');
         return false;
       }
 
-      // Look for lifetime package, fallback to first available if needed
       final package = offering.lifetime ?? offering.availablePackages.firstOrNull;
+      debugPrint('[IAP] selected package: ${package?.identifier}');
+      debugPrint('[IAP] selected product: ${package?.storeProduct.identifier}');
 
       if (package == null) {
-        debugPrint('No package found');
+        debugPrint('[IAP] No package found in offering');
         return false;
       }
 
       final info = await Purchases.purchasePackage(package);
       _updateProStatus(info);
+      debugPrint('[IAP] purchase success: ${info.entitlements.active.keys}');
       return isPro;
     } catch (e) {
-      debugPrint('Purchase failed: $e');
+      debugPrint('[IAP] purchase error: $e');
       return false;
     }
   }
 
-  Future<void> restorePurchases() async {
+  Future<bool> restorePurchases() async {
     try {
       final info = await Purchases.restorePurchases();
       _updateProStatus(info);
+      debugPrint('[IAP] restore success: ${info.entitlements.active.keys}');
+      return isPro;
     } catch (e) {
-      debugPrint('Restore failed: $e');
+      debugPrint('[IAP] Restore failed: $e');
+      return false;
     }
   }
 }
