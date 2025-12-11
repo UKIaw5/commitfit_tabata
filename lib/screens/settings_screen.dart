@@ -317,6 +317,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             _buildColorOption(0xFF2563EB, isPro), // Blue
                             _buildColorOption(0xFFDC2626, isPro), // Red
                             _buildColorOption(0xFF171717, isPro), // Monochrome
+                            _buildColorOption(0xFFFFFFFF, isPro), // White
+                            _buildColorOption(0xFFFACC15, isPro), // Yellow
                           ],
                         );
                       },

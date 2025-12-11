@@ -60,24 +60,48 @@ class MyApp extends StatelessWidget {
       builder: (context, snapshot) {
         final seedColorValue = snapshot.data ?? 0xFF2EA043;
         final isMonochrome = seedColorValue == 0xFF171717;
+        final isWhite = seedColorValue == 0xFFFFFFFF;
+        final isYellow = seedColorValue == 0xFFFACC15;
 
         final baseScheme = ColorScheme.fromSeed(
           seedColor: Color(seedColorValue),
-          brightness: isMonochrome ? Brightness.dark : Brightness.light,
+          brightness: (isMonochrome || isYellow) ? Brightness.dark : Brightness.light,
         );
 
-        final colorScheme = isMonochrome
-            ? baseScheme.copyWith(
-                background: const Color(0xFF171717), // Near-black
-                surface: const Color(0xFF262626), // Slightly lighter
-                onSurface: const Color(0xFFE5E5E5), // Light gray text
-                primary: const Color(0xFF737373), // Neutral gray accent
-                onPrimary: Colors.white,
-              )
-            : baseScheme.copyWith(
-                background: const Color(0xFFF2F5F0),
-                surface: Colors.white,
-              );
+        ColorScheme colorScheme;
+        if (isMonochrome) {
+          colorScheme = baseScheme.copyWith(
+            background: const Color(0xFF171717), // Near-black
+            surface: const Color(0xFF262626), // Slightly lighter
+            onSurface: const Color(0xFFE5E5E5), // Light gray text
+            primary: const Color(0xFF737373), // Neutral gray accent
+            onPrimary: Colors.white,
+          );
+        } else if (isWhite) {
+          colorScheme = baseScheme.copyWith(
+            background: Colors.white,
+            surface: const Color(0xFFF3F4F6), // Very light gray for cards/appbar
+            onSurface: const Color(0xFF111827), // Dark gray text
+            primary: const Color(0xFF1F2937), // Dark gray accent
+            onPrimary: Colors.white,
+            secondary: const Color(0xFF9CA3AF),
+          );
+        } else if (isYellow) {
+          colorScheme = baseScheme.copyWith(
+            background: const Color(0xFF1F2937), // Dark Gray
+            surface: const Color(0xFF374151), // Lighter Dark Gray
+            onSurface: const Color(0xFFF9FAFB), // White-ish text
+            primary: const Color(0xFFFACC15), // Yellow
+            onPrimary: Colors.black, // Black text on yellow
+            secondary: const Color(0xFFF59E0B), // Amber
+          );
+        } else {
+          // Default / Red / Blue (Light mode based)
+          colorScheme = baseScheme.copyWith(
+            background: const Color(0xFFF2F5F0),
+            surface: Colors.white,
+          );
+        }
 
         return MaterialApp(
           title: 'GitFit',

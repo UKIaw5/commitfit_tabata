@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 
 import '../config/app_settings.dart';
@@ -150,6 +151,25 @@ class _GraphScreenState extends State<GraphScreen> {
     
     _recalcDates(); // 設定が変わっている可能性があるので再計算
 
+    // DEBUG-ONLY: force a dense fake contribution graph for screenshots
+    if (kDebugMode) {
+      final today = _endDate;
+      final fakeMap = <String, int>{};
+
+      // Use last 84 days (~12 weeks) for a nice dense graph
+      final daysToFake = 84;
+      for (int i = 0; i < daysToFake; i++) {
+        final date = today.subtract(Duration(days: i));
+        final key = _formatDateKey(date);
+
+        // Cycle session counts between 1 and _maxSessionsPerDay
+        final sessions = ((i % _maxSessionsPerDay) + 1).clamp(1, _maxSessionsPerDay);
+        fakeMap[key] = sessions;
+      }
+
+      _sessionsByDate = fakeMap;
+    }
+
     final totalDays = _weeksToShow * 7;
 
     // 古い日付 → 新しい日付のリスト
@@ -215,6 +235,21 @@ class _GraphScreenState extends State<GraphScreen> {
               _loadHistory();
             },
           ),
+            if (kDebugMode)
+            TextButton(
+              onPressed: () async {
+                await AppSettings.seedDemoData();
+                await _loadHistory();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Demo data seeded for the last 180 days.'),
+                    ),
+                  );
+                }
+              },
+              child: const Text('Seed demo data', style: TextStyle(color: Colors.white)),
+            ),
         ],
       ),
       body: SafeArea(
