@@ -13,7 +13,6 @@ class GraphScreen extends StatefulWidget {
 
 class _GraphScreenState extends State<GraphScreen> {
   bool _loading = true;
-  List<WorkoutDay> _days = [];
   late Map<String, int> _sessionsByDate; // 'YYYY-MM-DD' -> sessions
   late DateTime _startDate;
   late DateTime _endDate;
@@ -40,7 +39,6 @@ class _GraphScreenState extends State<GraphScreen> {
     setState(() {
       _weeksToShow = graphConfig.weeksToShow;
       _maxSessionsPerDay = graphConfig.maxSessionsPerDay;
-      _days = days;
       _sessionsByDate = map;
       _loading = false;
     });
@@ -91,6 +89,17 @@ class _GraphScreenState extends State<GraphScreen> {
     } else {
       return Colors.green.shade900;
     }
+  }
+
+  Future<void> _seedDemoDataForScreenshots() async {
+    await AppSettings.seedDemoData();
+    await _loadHistory();
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Demo data seeded (screenshot mode).'),
+      ),
+    );
   }
 
   @override
@@ -214,7 +223,13 @@ class _GraphScreenState extends State<GraphScreen> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: const Text('Contribution Graph', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)), // Increased font size
+        title: GestureDetector(
+          onLongPress: _seedDemoDataForScreenshots,
+          child: const Text(
+            'Contribution Graph',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -235,21 +250,6 @@ class _GraphScreenState extends State<GraphScreen> {
               _loadHistory();
             },
           ),
-            if (kDebugMode)
-            TextButton(
-              onPressed: () async {
-                await AppSettings.seedDemoData();
-                await _loadHistory();
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Demo data seeded for the last 180 days.'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Seed demo data', style: TextStyle(color: Colors.white)),
-            ),
         ],
       ),
       body: SafeArea(
