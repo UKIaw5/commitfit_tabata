@@ -308,7 +308,8 @@ class _GraphScreenState extends State<GraphScreen> {
                                           color: Colors.grey,
                                           fontWeight: FontWeight.bold,
                                         ),
-                                        overflow: TextOverflow.ellipsis,
+                                        overflow: TextOverflow.visible,
+                                        softWrap: false,
                                       ),
                                     );
                                   }),
