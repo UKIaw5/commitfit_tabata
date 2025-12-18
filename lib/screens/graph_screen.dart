@@ -91,16 +91,7 @@ class _GraphScreenState extends State<GraphScreen> {
     }
   }
 
-  Future<void> _seedDemoDataForScreenshots() async {
-    await AppSettings.seedDemoData();
-    await _loadHistory();
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Demo data seeded (screenshot mode).'),
-      ),
-    );
-  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -160,24 +151,7 @@ class _GraphScreenState extends State<GraphScreen> {
     
     _recalcDates(); // 設定が変わっている可能性があるので再計算
 
-    // DEBUG-ONLY: force a dense fake contribution graph for screenshots
-    if (kDebugMode) {
-      final today = _endDate;
-      final fakeMap = <String, int>{};
 
-      // Use last 84 days (~12 weeks) for a nice dense graph
-      final daysToFake = 84;
-      for (int i = 0; i < daysToFake; i++) {
-        final date = today.subtract(Duration(days: i));
-        final key = _formatDateKey(date);
-
-        // Cycle session counts between 1 and _maxSessionsPerDay
-        final sessions = ((i % _maxSessionsPerDay) + 1).clamp(1, _maxSessionsPerDay);
-        fakeMap[key] = sessions;
-      }
-
-      _sessionsByDate = fakeMap;
-    }
 
     final totalDays = _weeksToShow * 7;
 
@@ -223,13 +197,10 @@ class _GraphScreenState extends State<GraphScreen> {
 
     final scaffold = Scaffold(
       appBar: AppBar(
-        title: GestureDetector(
-          onLongPress: _seedDemoDataForScreenshots,
-          child: const Text(
+        title: const Text(
             'Contribution Graph',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
