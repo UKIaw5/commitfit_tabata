@@ -231,6 +231,9 @@ class AppSettings {
 
   /// デモ用にフェイク履歴をシードする (Debug only)
   static Future<void> seedDemoData() async {
+    // Release build guard
+    if (!isDebugBuild) return;
+
     final now = DateTime.now().toLocal();
     final days = <WorkoutDay>[];
     final random = DateTime.now().millisecondsSinceEpoch; 
@@ -273,6 +276,20 @@ class AppSettings {
     }
     
     await saveWorkoutDays(days);
+  }
+
+  /// すべてのデータをリセット (Debug only)
+  static Future<void> resetAllData() async {
+    if (!isDebugBuild) return;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+  }
+
+  /// Debug build check using assert
+  static bool get isDebugBuild {
+    bool debug = false;
+    assert(debug = true);
+    return debug;
   }
 }
 
