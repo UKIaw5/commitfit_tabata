@@ -258,19 +258,21 @@ class _GraphScreenState extends State<GraphScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(8.0), // Reduced padding
+          padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 2.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // 1. Top Section: Header (Fixed)
               Text(
                 'Last $_weeksToShow weeks',
-                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold), // Increased font size
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 4),
+
+              // 2. Middle Section: Grid (Expanded + Aligned)
               Expanded(
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // 利用可能な幅と高さ
                     final availableWidth = constraints.maxWidth;
                     final availableHeight = constraints.maxHeight;
 
@@ -278,122 +280,123 @@ class _GraphScreenState extends State<GraphScreen> {
                     const double dayLabelWidth = 40.0;
                     const double dayLabelRightMargin = 8.0;
                     
-                    // グラフ部分の幅（ラベル分を引く）
                     final graphAreaWidth = availableWidth - dayLabelWidth - dayLabelRightMargin;
                     
-                    // セルサイズ計算
-                    // 以前は _weeksToShow で割っていたが、
-                    // 今後は「基準となる週数 (12週)」で割って、サイズを固定化する。
-                    const int baseWeeksForSizing = 12;
-                    
-                    // width = (cellSize + margin) * baseWeeks
-                    // cellSize = (width / baseWeeks) - margin
+                    // セルサイズ計算 (Zoomed in: 8 weeks)
+                    const int baseWeeksForSizing = 8;
                     double cellSize = (graphAreaWidth / baseWeeksForSizing) - 2.0;
                     
-                    // 高さが足りない場合の制限 (7行 + マージン)
-                    // height = (cellSize + margin) * 7
+                    // 高さ制限 (Grid height only)
+                    // Grid height = (cellSize + 2) * 7
+                    // (cellSize + 2) * 7 <= availableHeight
                     final double maxHeightBasedCellSize = (availableHeight / 7) - 2.0;
                     
                     if (cellSize > maxHeightBasedCellSize) {
                       cellSize = maxHeightBasedCellSize;
                     }
                     
-                    // あまりに小さくなりすぎないように制限（任意）
-                    // cellSize = cellSize.clamp(10.0, 50.0);
-                    
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: dayLabelWidth,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.end,
-                            children: [
-                              SizedBox(height: cellSize + 2), // Month label offset roughly
-                              _buildDayLabel('Mon', cellSize),
-                              SizedBox(height: cellSize + 2),
-                              _buildDayLabel('Wed', cellSize),
-                              SizedBox(height: cellSize + 2),
-                              _buildDayLabel('Fri', cellSize),
-                            ],
-                          ),
-                        ),
-                        SizedBox(width: dayLabelRightMargin),
-                        Expanded(
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            reverse: true, // 最新の日付（右側）を初期表示
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Month Labels
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: List.generate(weeks.length, (weekIndex) {
-                                    final label = monthLabels[weekIndex];
-                                    return Container(
-                                      width: cellSize + 2, // cell + margin
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        label,
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                        overflow: TextOverflow.visible,
-                                        softWrap: false,
-                                      ),
-                                    );
-                                  }),
-                                ),
-                                const SizedBox(height: 4),
-                                // Graph Grid
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: List.generate(weeks.length, (weekIndex) {
-                                    final week = weeks[weekIndex];
-                                    return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: week.map((date) {
-                                        final key = _formatDateKey(date);
-                                        final sessions = _sessionsByDate[key] ?? 0;
-                                        final color = _colorForSessions(context, sessions);
+                    if (cellSize < 10.0) cellSize = 10.0;
 
-                                        return Padding(
-                                          padding: const EdgeInsets.only(bottom: 2, right: 2),
-                                          child: Tooltip(
-                                            message: '${_formatShortDate(date)} : $sessions session(s)',
-                                            child: Container(
-                                              width: cellSize,
-                                              height: cellSize,
-                                              decoration: BoxDecoration(
-                                                color: color,
-                                                borderRadius: BorderRadius.circular(4),
-                                              ),
-                                            ),
-                                          ),
-                                        );
-                                      }).toList(),
-                                    );
-                                  }),
-                                ),
+                    return Align(
+                      alignment: const Alignment(0, -0.2), // Slightly above center
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min, // Shrink to fit content
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(
+                            width: dayLabelWidth,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                SizedBox(height: cellSize + 2),
+                                _buildDayLabel('Mon', cellSize),
+                                SizedBox(height: cellSize + 2),
+                                _buildDayLabel('Wed', cellSize),
+                                SizedBox(height: cellSize + 2),
+                                _buildDayLabel('Fri', cellSize),
                               ],
                             ),
                           ),
-                        ),
-                      ],
+                          SizedBox(width: dayLabelRightMargin),
+                          Flexible(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              reverse: true,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Month Labels
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: List.generate(weeks.length, (weekIndex) {
+                                      final label = monthLabels[weekIndex];
+                                      return Container(
+                                        width: cellSize + 2,
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          label,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          overflow: TextOverflow.visible,
+                                          softWrap: false,
+                                        ),
+                                      );
+                                    }),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // Graph Grid
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: List.generate(weeks.length, (weekIndex) {
+                                      final week = weeks[weekIndex];
+                                      return Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: week.map((date) {
+                                          final key = _formatDateKey(date);
+                                          final sessions = _sessionsByDate[key] ?? 0;
+                                          final color = _colorForSessions(context, sessions);
+
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 2, right: 2),
+                                            child: Tooltip(
+                                              message: '${_formatShortDate(date)} : $sessions session(s)',
+                                              child: Container(
+                                                width: cellSize,
+                                                height: cellSize,
+                                                decoration: BoxDecoration(
+                                                  color: color,
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      );
+                                    }),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),
               ),
-              const SizedBox(height: 12),
+              
+              const SizedBox(height: 4),
+
+              // 3. Bottom Section: Legend (Fixed)
               Row(
                 children: [
                   const Text('Less', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(width: 8),
                   _legendBox(context, 0, 20),
-                  _legendBox(context, 1, 20), // approx 20%
+                  _legendBox(context, 1, 20),
                   _legendBox(context, (_maxSessionsPerDay * 0.4).ceil(), 20),
                   _legendBox(context, _maxSessionsPerDay, 20),
                   const SizedBox(width: 8),
@@ -403,7 +406,7 @@ class _GraphScreenState extends State<GraphScreen> {
                     todaySessions == 0
                         ? 'Today: 0'
                         : 'Today: $todaySessions',
-                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold), // Increased font size
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
