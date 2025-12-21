@@ -202,39 +202,6 @@ class _GraphScreenState extends State<GraphScreen> {
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
         actions: [
-          if (AppSettings.isDebugBuild)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.bug_report),
-              onSelected: (value) async {
-                if (value == 'seed') {
-                  await AppSettings.seedDemoData();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Demo data seeded')),
-                    );
-                    _loadHistory();
-                  }
-                } else if (value == 'reset') {
-                  await AppSettings.resetAllData();
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('All data reset')),
-                    );
-                    _loadHistory();
-                  }
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'seed',
-                  child: Text('Seed Demo Data'),
-                ),
-                const PopupMenuItem(
-                  value: 'reset',
-                  child: Text('Reset Data'),
-                ),
-              ],
-            ),
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () async {
@@ -410,6 +377,7 @@ class _GraphScreenState extends State<GraphScreen> {
                   ),
                 ],
               ),
+
             ],
           ),
         ),

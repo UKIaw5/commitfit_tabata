@@ -229,62 +229,6 @@ class AppSettings {
     await prefs.setInt(_keyThemeColor, colorValue);
   }
 
-  /// デモ用にフェイク履歴をシードする (Debug only)
-  static Future<void> seedDemoData() async {
-    // Release build guard
-    if (!isDebugBuild) return;
-
-    final now = DateTime.now().toLocal();
-    final days = <WorkoutDay>[];
-    final random = DateTime.now().millisecondsSinceEpoch; 
-    
-    // 過去180日分 (Dense data for screenshots)
-    for (int i = 0; i < 180; i++) {
-      final date = now.subtract(Duration(days: 179 - i));
-      final y = date.year.toString().padLeft(4, '0');
-      final m = date.month.toString().padLeft(2, '0');
-      final d = date.day.toString().padLeft(2, '0');
-      final dateKey = '$y-$m-$d';
-
-      // Dense pattern: High probability of activity
-      int sessions = 0;
-      final val = (random + i * 1327) % 100;
-      
-      if (val < 10) {
-        // 10% chance of 0 (gap)
-        sessions = 0;
-      } else if (val < 20) {
-        // 10% chance of 1
-        sessions = 1;
-      } else if (val < 40) {
-        // 20% chance of 2
-        sessions = 2;
-      } else if (val < 60) {
-        // 20% chance of 3
-        sessions = 3;
-      } else if (val < 80) {
-        // 20% chance of 4
-        sessions = 4;
-      } else {
-        // 20% chance of 5
-        sessions = 5;
-      }
-      
-      if (sessions > 0) {
-        days.add(WorkoutDay(date: dateKey, sessions: sessions));
-      }
-    }
-    
-    await saveWorkoutDays(days);
-  }
-
-  /// すべてのデータをリセット (Debug only)
-  static Future<void> resetAllData() async {
-    if (!isDebugBuild) return;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.clear();
-  }
-
   /// Debug build check using assert
   static bool get isDebugBuild {
     bool debug = false;
