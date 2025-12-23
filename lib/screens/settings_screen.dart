@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../config/app_settings.dart';
@@ -432,6 +433,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         onTap: () async {
                           await ConsentService.instance.showPrivacyOptionsForm(context);
                           // Re-check requirement status after form closes
+                          final required = await ConsentService.instance.isPrivacyOptionsRequired();
+                          if (mounted) {
+                            setState(() {
+                              _isPrivacyOptionsRequired = required;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                    // DEBUG ONLY: UMP Reset
+                    if (kDebugMode) ...[
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.bug_report, color: Colors.red),
+                        title: const Text('Reset Consent (Debug)'),
+                        subtitle: const Text('Resets UMP state and re-initializes'),
+                        onTap: () async {
+                          await ConsentService.instance.reset();
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Consent reset. Re-initializing...')),
+                            );
+                          }
+                          await ConsentService.instance.initialize();
+                          // Re-check requirement
                           final required = await ConsentService.instance.isPrivacyOptionsRequired();
                           if (mounted) {
                             setState(() {

@@ -1,5 +1,5 @@
 import 'dart:async';
-
+import 'package:flutter/foundation.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -10,6 +10,7 @@ import 'package:provider/provider.dart';
 import '../config/app_settings.dart';
 import '../state/pro_state.dart';
 import 'settings_screen.dart';
+import '../services/consent_service.dart';
 import 'graph_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -41,49 +42,145 @@ class _HomeScreenState extends State<HomeScreen> {
   // AdMob Banner
   BannerAd? _bannerAd;
   bool _isBannerReady = false;
+  bool _adSafeMode = false; // Safe mode to prevent crash loops
+  Key _adWidgetKey = UniqueKey(); // Force AdWidget rebuild
 
   @override
   void initState() {
     super.initState();
     _loadConfig();
-    // Ad loading is handled in didChangeDependencies
+    // Listen to consent changes AND initialization status
+    ConsentService.instance.canRequestAdsNotifier.addListener(_checkAds);
+    ConsentService.instance.mobileAdsInitializedNotifier.addListener(_checkAds);
   }
 
   @override
   void dispose() {
+    ConsentService.instance.canRequestAdsNotifier.removeListener(_checkAds);
+    ConsentService.instance.mobileAdsInitializedNotifier.removeListener(_checkAds);
     _timer?.cancel();
     _preCountdownTimer?.cancel();
     _player.dispose();
     _bannerAd?.dispose();
     super.dispose();
   }
-  void _loadBannerAd() {
-    // If Pro, don't load ads
-    if (context.read<ProState>().isPro) return;
 
-    // Production banner ad unit
-    const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
+  void _checkAds() {
+    if (!mounted) return;
+    if (_adSafeMode) return;
 
-    _bannerAd = BannerAd(
-      adUnitId: prodBannerAdUnitId,
-      size: AdSize.banner,
-      request: const AdRequest(),
-      listener: BannerAdListener(
-        onAdLoaded: (ad) {
-          if (!mounted) {
-            ad.dispose();
-            return;
+    try {
+      final canRequestAds = ConsentService.instance.canRequestAdsNotifier.value;
+      final isInitialized = ConsentService.instance.mobileAdsInitializedNotifier.value;
+      final isPro = context.read<ProState>().isPro;
+      
+      final shouldShow = canRequestAds && isInitialized && !isPro;
+
+      if (shouldShow) {
+        debugPrint('[ADS] shouldShowAds=true');
+        _loadBannerAd(forceRecreate: true);
+      } else {
+        if (kDebugMode) {
+          debugPrint('[ADS] shouldShowAds=false (canRequest=$canRequestAds, init=$isInitialized, isPro=$isPro)');
+        }
+        // Dispose and hide
+        if (_bannerAd != null) {
+          debugPrint('[ADS] banner disposed (shouldShowAds=false)');
+          _bannerAd?.dispose();
+          _bannerAd = null;
+          if (mounted) {
+            setState(() {
+              _isBannerReady = false;
+            });
           }
-          setState(() {
-            _isBannerReady = true;
-          });
-        },
-        onAdFailedToLoad: (ad, error) {
-          ad.dispose();
-          debugPrint('BannerAd failed to load: $error');
-        },
-      ),
-    )..load();
+        }
+      }
+    } catch (e) {
+      debugPrint('[ADS] Error in _checkAds: $e');
+      _enterAdSafeMode();
+    }
+  }
+
+  void _enterAdSafeMode() {
+    _adSafeMode = true;
+    debugPrint('[ADS] disabled for this session due to error');
+    try {
+      _bannerAd?.dispose();
+    } catch (_) {}
+    _bannerAd = null;
+    if (mounted) {
+      setState(() {
+        _isBannerReady = false;
+      });
+    }
+  }
+
+  void _loadBannerAd({bool forceRecreate = false}) {
+    if (_adSafeMode) return;
+    if (!mounted) return;
+
+    try {
+      // Double check conditions
+      final canRequestAds = ConsentService.instance.canRequestAdsNotifier.value;
+      final isInitialized = ConsentService.instance.mobileAdsInitializedNotifier.value;
+      final isPro = context.read<ProState>().isPro;
+
+      if (isPro) return;
+      if (!canRequestAds) return;
+      if (!isInitialized) return;
+
+      // If we already have an ad and not forcing recreation, do nothing
+      if (_bannerAd != null && !forceRecreate) return;
+
+      // Dispose existing if any
+      if (_bannerAd != null) {
+        _bannerAd?.dispose();
+        _bannerAd = null;
+      }
+      
+      if (mounted) {
+        setState(() {
+          _isBannerReady = false;
+        });
+      }
+
+      // Production banner ad unit
+      const String prodBannerAdUnitId = 'ca-app-pub-7982112708155827/3074866842';
+
+      debugPrint('[ADS] banner load() called');
+
+      _bannerAd = BannerAd(
+        adUnitId: prodBannerAdUnitId,
+        size: AdSize.banner,
+        request: const AdRequest(),
+        listener: BannerAdListener(
+          onAdLoaded: (ad) {
+            debugPrint('[ADS] banner loaded');
+            if (!mounted) {
+              ad.dispose();
+              return;
+            }
+            setState(() {
+              _isBannerReady = true;
+              _adWidgetKey = UniqueKey(); // Force rebuild with new key
+            });
+          },
+          onAdFailedToLoad: (ad, error) {
+            debugPrint('[ADS] banner failed: ${error.message} (code: ${error.code})');
+            ad.dispose();
+            if (mounted) {
+              setState(() {
+                _isBannerReady = false;
+              });
+            }
+          },
+          onAdImpression: (ad) => debugPrint('[ADS] banner impression'),
+        ),
+      )..load();
+    } catch (e) {
+      debugPrint('[ADS] Exception loading banner: $e');
+      _enterAdSafeMode();
+    }
   }
 
   @override
@@ -99,7 +196,8 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } else {
-      if (_bannerAd == null) {
+      // If not pro, check consent and load if needed
+      if (_bannerAd == null && ConsentService.instance.canRequestAdsNotifier.value) {
         _loadBannerAd();
       }
     }
@@ -552,7 +650,10 @@ class _HomeScreenState extends State<HomeScreen> {
               child: SizedBox(
                 height: _bannerAd!.size.height.toDouble(),
                 child: Center(
-                  child: AdWidget(ad: _bannerAd!),
+                  child: AdWidget(
+                    key: _adWidgetKey,
+                    ad: _bannerAd!,
+                  ),
                 ),
               ),
             )
