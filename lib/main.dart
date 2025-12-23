@@ -14,6 +14,7 @@ import 'package:provider/provider.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'state/pro_state.dart';
 import 'config/app_settings.dart';
+import 'services/consent_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -22,9 +23,10 @@ void main() async {
     DeviceOrientation.portraitDown,
   ]);
   try {
-    await MobileAds.instance.initialize();
+    // Initialize Consent and Ads
+    await ConsentService.instance.initialize();
   } catch (e) {
-    debugPrint("AdMob initialization failed: $e");
+    debugPrint("Consent/AdMob initialization failed: $e");
   }
   
   // Initialize RevenueCat

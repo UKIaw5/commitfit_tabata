@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../config/app_settings.dart';
 import '../services/pro_service.dart';
 import '../state/pro_state.dart';
+import '../services/consent_service.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -31,6 +32,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   static const int _minGraphMaxSessions = 1;
   static const int _maxGraphMaxSessions = 10;
 
+  bool _isPrivacyOptionsRequired = false;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +43,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _loadConfig() async {
     final timerConfig = await AppSettings.loadTimerConfig();
     final graphConfig = await AppSettings.loadGraphConfig();
+    final privacyRequired = await ConsentService.instance.isPrivacyOptionsRequired();
+
     setState(() {
       _workSeconds = timerConfig.workSeconds;
       _restSeconds = timerConfig.restSeconds;
@@ -47,6 +52,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
       _graphWeeks = graphConfig.weeksToShow;
       _graphMaxSessions = graphConfig.maxSessionsPerDay;
+      
+      _isPrivacyOptionsRequired = privacyRequired;
 
       _loading = false;
     });
@@ -416,6 +423,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       },
                     ),
                     const SizedBox(height: 32),
+                    if (_isPrivacyOptionsRequired) ...[
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.privacy_tip_outlined),
+                        title: const Text('Manage privacy choices'),
+                        subtitle: const Text('Update your consent preferences'),
+                        onTap: () async {
+                          await ConsentService.instance.showPrivacyOptionsForm(context);
+                          // Re-check requirement status after form closes
+                          final required = await ConsentService.instance.isPrivacyOptionsRequired();
+                          if (mounted) {
+                            setState(() {
+                              _isPrivacyOptionsRequired = required;
+                            });
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 32),
+                    ],
                   ],
                 ),
               ),
